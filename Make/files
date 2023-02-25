@@ -1,3 +1,0 @@
-rhoEnergyFoam.C
-
-EXE = $(FOAM_APPBIN)/rhoEnergyFoamVis
