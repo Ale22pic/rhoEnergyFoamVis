@@ -1,6 +1,15 @@
 //      Evaluate time step of Navier-Stokes equations
-        volScalarField muEff(turbulence->muEff())  ;
-        volScalarField k("k", thermo.Cp()*muEff/Pr);//thermal diffusivity
+//      volScalarField muEff(turbulence->muEff())  ;
+	
+	volScalarField rhoFil = fvc::surfaceSum
+        (
+        mesh.magSf()*fvc::interpolate(rho)
+        )/fvc::surfaceSum(mesh.magSf());
+	
+	volScalarField muEff = turbulence -> muEff() ;
+        muArt = rho * 2.0 * mag((rho-rhoFil)/(rho+rhoFil)) * Chi * Foam::pow(cellVolu,2.0/3.0) *  Foam::sqrt(2.0)*mag(0.5*symm(fvc::grad(U))) ;
+
+	volScalarField k("k", thermo.Cp()*(muEff+muArt)/Pr);//thermal diffusivity
 
         scalar CoNum = 0.0;
         volScalarField lammax =  zero*U.component(0);
@@ -10,7 +19,8 @@
          surfaceScalarField un   = fvc::interpolate(mag(U));
          surfaceScalarField lambda = mag(un + cave);
          surfaceScalarField evmax    = lambda;
-         surfaceScalarField evmu     = fvc:: interpolate(muEff/rho);
+//       surfaceScalarField evmu     = fvc:: interpolate(muEff/rho);
+         surfaceScalarField evmu     = fvc:: interpolate((muEff+muArt)/rho);
          surfaceScalarField eval     = fvc:: interpolate(k/rho/thermo.Cp());
          //dx is the distance between two centers projected along the face normal
          surfaceScalarField dx

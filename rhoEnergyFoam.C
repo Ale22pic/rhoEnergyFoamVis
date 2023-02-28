@@ -152,11 +152,12 @@ int main(int argc, char *argv[])
     
 //     	Speed of sound and Mach number
 
-		
+
 	c = Foam::sqrt(thermo.Cp()/thermo.Cv()/psi);
 
 
 	Mach = U/c ;
+
 
 //      Interpolated quantities at cell faces     
         
@@ -169,8 +170,10 @@ int main(int argc, char *argv[])
         phit   = fvc:: interpolate(rhoU) & mesh.Sf() ; 
       
 //      Enthalpy
-        
+
+
 	H    = (rhoE + p)/rho ;
+
 
 
 //      Enthalpy at the intercell
@@ -214,21 +217,26 @@ int main(int argc, char *argv[])
 //	Original RhoEnergyFoam
 //	volScalarField muEff(turbulence->muEff()) ;
 
+
 //	First modification with artificial viscosity, in order that works
 //	with RANS and turbulence model
-	volScalarField muEf = turbulence -> muEff() ;
+	volScalarField muEff = turbulence -> muEff() ;
         muArt = rho * 2.0 * mag((rho-rhoFil)/(rho+rhoFil)) * Chi * Foam::pow(cellVolu,2.0/3.0) *  Foam::sqrt(2.0)*mag(0.5*symm(fvc::grad(U))) ;
-	muEff = muEf + muArt ;
+	//muEff = muEf + muArt ;
+
 
 //	Modification in order to try a muEff const on Taylor-Green Vortex
 //	so all is commentend and the muEff is initialized in variables.H
 //	with a constant value
 
-        volTensorField tauMC("tauMC", muEff*dev2(Foam::T(fvc::grad(U)))) ;
+//      volTensorField tauMC("tauMC", muEff*dev2(Foam::T(fvc::grad(U)))) ;
+        volTensorField tauMC("tauMC", (muEff+muArt)*dev2(Foam::T(fvc::grad(U)))) ;
 
-	surfaceScalarField  muave = fvc::interpolate(muEff) ; //mu at cell faces
+//	surfaceScalarField  muave = fvc::interpolate(muEff) ; //mu at cell faces
+	surfaceScalarField  muave = fvc::interpolate(muEff+muArt) ; //mu at cell faces
 
-        volScalarField k("k", thermo.Cp()*muEff/Pr) ; //thermal conductivity
+//      volScalarField k("k", thermo.Cp()*(muEff)/Pr) ; //thermal conductivity
+        volScalarField k("k", thermo.Cp()*(muEff+muArt)/Pr) ; //thermal conductivity
 
         surfaceScalarField kave = fvc::interpolate(k) ; //k at cell faces
         
@@ -283,10 +291,12 @@ int main(int argc, char *argv[])
                 -enFl ) ;
 
 //	Update primitive variables and boundary conditions
-        
+
+
 	U.ref() = rhoU() / rho();
         U.correctBoundaryConditions();
 	
+
         rhoU.boundaryFieldRef() = rho.boundaryField()*U.boundaryField();
 
         e = rhoE/rho - 0.5*magSqr(U);
@@ -305,10 +315,11 @@ int main(int argc, char *argv[])
                 e.boundaryField() + 0.5*magSqr(U.boundaryField())
             );
 
-	
+
 	p.ref() = rho() / psi();
         p.correctBoundaryConditions();
-	
+
+
 
 	rho.boundaryFieldRef() = psi.boundaryField()*p.boundaryField(); //psi=1/(R*T)
 

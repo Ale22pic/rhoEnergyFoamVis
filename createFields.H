@@ -21,8 +21,8 @@ autoPtr<psiThermo> pThermo
 );
 psiThermo& thermo = pThermo();
 volScalarField& e = thermo.he();
-volScalarField cv = thermo.Cv();
 
+volScalarField cv = thermo.Cv();
 
 
 Info<< "Reading field U\n" << endl;
