@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 
 //	First modification with artificial viscosity, in order that works
 //	with RANS and turbulence model
-	volScalarField muEff = turbulence -> muEff() ;
+	muEff = turbulence -> muEff() ;
         muArt = rho * 2.0 * mag((rho-rhoFil)/(rho+rhoFil)) * Chi * Foam::pow(cellVolu,2.0/3.0) *  Foam::sqrt(2.0)*mag(0.5*symm(fvc::grad(U))) ;
 	//muEff = muEf + muArt ;
 
